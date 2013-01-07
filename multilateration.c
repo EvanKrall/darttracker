@@ -14,31 +14,56 @@ double multilaterate(size_t numKnownPoints, Vec3 *knownPoints, double *deltaDist
     return errorSquared;
 }
 
+
+// double stddev(size_t n, double *v) {
+//     double sumSquares = 0;
+//     double mean = avg(n, v);
+//     for (int i=0; i<n; i++) {
+//         sumSquares += pow(v[i] - mean);
+//     }
+//     return sqrt(sumSquares / n);
+// }
+
+// double avg(size_t n, double *v) {
+//     double sum = 0;
+//     for (int i=0; i<n; i++) {
+//         sum += v[i];
+//     }
+//     return sum;
+// }
+
+double error(size_t numKnownPoints, Vec3 *knownPoints, double *targetDeltaDistances, Vec3 point) {
+    // Return approximately how wrong point is.
+    // double *deltaDistanceErrors = calloc(sizeof(double), numKnownPoints);
+    double distanceToOrigin = mag(point);
+
+    double sum = 0;
+    for (int i=0; i<numKnownPoints; i++) {
+        double actualDeltaDistance = mag(subtract(point, knownPoints[i])) - distanceToOrigin;
+        sum += pow(actualDeltaDistance - targetDeltaDistances[i], 2);
+    }
+    return sqrt(sum / numKnownPoints);
+}
+
 double multilaterate_guess(size_t numKnownPoints, Vec3 *knownPoints, double *deltaDistances, Vec3 *guess, double alpha) {
-    double distanceToOrigin = mag(*guess);
+    // double distanceToOrigin = mag(*guess);
     Vec3 gradient = {0, 0, 0};
 
     printVec("guess", *guess);
-    for (int i=0; i < numKnownPoints; i++) {
-        Vec3 p = knownPoints[i];
-        printVec("\tp", p);
+    double currentError = error(numKnownPoints, knownPoints, deltaDistances, *guess);
 
-        Vec3 vectorToP = subtract(p, *guess);
-        printVec("\tvectorToP", vectorToP);
-        double targetDistance = distanceToOrigin + deltaDistances[i];
-        printf("\ttargetDistance %f\n", targetDistance);
-        Vec3 targetVector = scale(vectorToP, targetDistance / mag(vectorToP));
-        printVec("\ttargetVector", targetVector);
+    double dd = 0.0001;
+    printf("currentError %f\n", currentError);
 
-        Vec3 force = add(vectorToP, targetVector);
-        printVec("\tforce", force);
-        accum(&gradient, divide(force, numKnownPoints)); // Check direction here.
-        printf("\n");
-    }
+    gradient = divide((Vec3) {
+        error(numKnownPoints, knownPoints, deltaDistances, add(*guess, (Vec3){dd, 0, 0})) - currentError,
+        error(numKnownPoints, knownPoints, deltaDistances, add(*guess, (Vec3){0, dd, 0})) - currentError,
+        error(numKnownPoints, knownPoints, deltaDistances, add(*guess, (Vec3){0, 0, dd})) - currentError,
+    }, dd);
 
     printVec("gradient", gradient);
 
-    accum(guess, scale(gradient, alpha));
+    accum(guess, scale(gradient, -1.0 * alpha));
     return mag(gradient);
 }
 
@@ -93,5 +118,6 @@ double mag(Vec3 a) {
 }
 
 void printVec(char *name, Vec3 a) {
-    printf("%s: % -3.3f % -3.3f % -3.3f\n", name, a.x, a.y, a.z);
+    // printf("%s: % -3.3f % -3.3f % -3.3f\n", name, a.x, a.y, a.z);
+    printf ("%s %e %e %e\n", name, a.x, a.y, a.z);
 }

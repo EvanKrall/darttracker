@@ -5,7 +5,7 @@ int main(int argc, char **argv) {
     Vec3 testPoint = {1, 1, 1};
     Vec3 guess = {10,10,10};
 
-    for (int i=0; i<5; i++) {
+    for (int i=0; i<100; i++) {
         multilaterate_guess(
             3,
             (Vec3[]){
@@ -19,7 +19,8 @@ int main(int argc, char **argv) {
                 mag(subtract(testPoint, (Vec3){0,0,1})) - mag(testPoint),
             },
             &guess,
-            0.125
+            // 0.125
+            1
         );
         printf("\n");
     }
