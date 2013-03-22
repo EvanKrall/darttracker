@@ -1,7 +1,7 @@
 TARGET = test
 LIBS = -lm
 CC = gcc
-CFLAGS = -g -Wall -std=c99
+CFLAGS = -g -Wall -std=c99 -fnested-functions
 
 .PHONY: default all clean
 
